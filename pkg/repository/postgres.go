@@ -6,7 +6,7 @@ import (
 )
 
 const (
-	userTable              = "users"
+	usersTable             = "users"
 	VKinternship_lists     = "lists_lenta"
 	userListsTable         = "users_lists"
 	VKlentaTable           = "vk_lenta"

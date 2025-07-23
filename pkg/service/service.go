@@ -7,7 +7,7 @@ import (
 
 type Authorization interface {
 	CreateUser(user VKinternship.User) (int, error)
-	GenerateToken(user VKinternship.User) (int, error)
+	GenerateToken(username, password string) (int, error)
 }
 
 type VkInternshipList interface {
