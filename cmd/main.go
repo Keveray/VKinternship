@@ -5,27 +5,48 @@ import (
 	"github.com/Keveray/VKinternship/pkg/handler"
 	"github.com/Keveray/VKinternship/pkg/repository"
 	"github.com/Keveray/VKinternship/pkg/service"
+	"github.com/joho/godotenv"
+	_ "github.com/lib/pq"
+	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
-	"log"
+	"os"
 )
 
 func main() {
+	logrus.SetFormatter(new(logrus.JSONFormatter))
 	if err := initConfig(); err != nil {
-		log.Fatalf("error initializing config: %s", err.Error())
+		logrus.Fatalf("error initializing configs: %s", err.Error())
 	}
-	repos := repository.NewRepository()
+
+	if err := godotenv.Load(); err != nil {
+		logrus.Fatalf("error loading env variables: %s", err.Error())
+	}
+
+	db, err := repository.NewPostgresDB(repository.Config{
+		Host:     viper.GetString("db.host"),
+		Port:     viper.GetString("db.port"),
+		Username: viper.GetString("db.username"),
+		DBname:   viper.GetString("db.dbname"),
+		SSLMode:  viper.GetString("db.sslmode"),
+		Password: os.Getenv("DB_PASSWORD"),
+	})
+	if err != nil {
+		logrus.Fatalf("failed to initializade db: %s", err.Error())
+	}
+
+	repos := repository.NewRepository(db)
 	services := service.NewService(repos)
 	handlers := handler.NewHandler(services)
 	srv := new(VKinternship.Server)
 	if err := srv.Run(viper.GetString("port"), handlers.InitRoutes()); err != nil {
-		log.Fatalf("error acucured while running http server: %s", err.Error())
+		logrus.Fatalf("error acucured while running http server: %s", err.Error())
 	}
 
 }
 
 func initConfig() error {
 	viper.AddConfigPath("configs")
-	viper.SetConfigName("config")
+	viper.SetConfigName("configs")
 	viper.SetEnvPrefix("APP")
 	viper.AutomaticEnv()
 	return viper.ReadInConfig()

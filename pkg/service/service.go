@@ -1,8 +1,13 @@
 package service
 
-import repository "github.com/Keveray/VKinternship/pkg/repository"
+import (
+	"github.com/Keveray/VKinternship"
+	repository "github.com/Keveray/VKinternship/pkg/repository"
+)
 
 type Authorization interface {
+	CreateUser(user VKinternship.User) (int, error)
+	GenerateToken(user VKinternship.User) (int, error)
 }
 
 type VkInternshipList interface {
@@ -18,5 +23,7 @@ type Service struct {
 }
 
 func NewService(repos *repository.Repository) *Service {
-	return &Service{}
+	return &Service{
+		Authorization: NewAuthService(repos.Authorization),
+	}
 }
